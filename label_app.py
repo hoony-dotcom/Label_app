@@ -62,7 +62,7 @@ except Exception as e:
     st.stop()
 
 # ==========================================
-# 🔗 URL 쿼리 파라미터 처리 (?mgm=관리번호)
+# 🔗 URL 쿼리 파라미터 및 기본값 처리
 # ==========================================
 query_params = st.query_params
 mgm_query = query_params.get("mgm", "")
@@ -73,11 +73,41 @@ mgm_query = mgm_query.strip().upper()
 st.markdown("### 🏷️ 의료장비 예방점검 라벨 조회")
 st.markdown("---")
 
-if not mgm_query:
-    st.warning("💡 관리번호가 지정되지 않았습니다.")
-    st.info("URL 뒤에 `?mgm=관리번호`를 붙여서 접속해 주세요.\n\n**사용 예시:** `https://your-app-url.streamlit.app/?mgm=50A1100001`")
+# 📷 [추가됨] 카메라 스캔 앱으로 이동하는 버튼 (상단 배치)
+# 'https://your-scanner-app.streamlit.app' 주소를 본인의 실제 카메라 스캔 앱 주소로 변경하세요.
+st.link_button(
+    label="📷 QR 카메라 스캔 앱으로 이동", 
+    url="https://your-scanner-app.streamlit.app", 
+    use_container_width=True
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# 전체 관리번호 목록 추출 (셀렉트박스용)
+dept_col = '사용\n부서' if '사용\n부서' in df_status.columns else '사용부서'
+all_mgm = df_status['관리번호'].dropna().astype(str).str.strip().str.upper().unique().tolist()
+all_mgm.sort()
+
+# URL에 관리번호가 없거나 잘못된 경우, 기본값으로 첫 번째 관리번호 지정
+if not mgm_query or mgm_query not in all_mgm:
+    if all_mgm:
+        mgm_query = all_mgm[0]
+
+# 상단에서 다른 장비로 즉시 전환할 수 있는 선택 바 제공
+selected_mgm = st.selectbox(
+    "🔍 다른 장비 라벨 조회 (관리번호 선택 또는 검색):",
+    all_mgm,
+    index=all_mgm.index(mgm_query) if mgm_query in all_mgm else 0
+)
+
+if selected_mgm and selected_mgm != mgm_query:
+    mgm_query = selected_mgm
+
+st.markdown("---")
+
+if not mgm_query or all_mgm.count(mgm_query) == 0:
+    st.error("조회 가능한 장비 데이터가 없습니다.")
 else:
-    dept_col = '사용\n부서' if '사용\n부서' in df_status.columns else '사용부서'
     matched_status = df_status[df_status['관리번호'].astype(str).str.strip().str.upper() == mgm_query]
     
     if matched_status.empty:
@@ -184,7 +214,7 @@ else:
         if last_inspection_date == "-":
             st.info("ℹ️ 해당 장비의 수리내역 중 예방점검('Y') 이력이 존재하지 않습니다.")
 
-        # 요청하신 링크 버튼 추가 영역
+        # 장비 상세내역 및 수리이력 확인 링크 버튼 영역
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
             """
