@@ -1,0 +1,9 @@
+streamlit
+pandas
+openpyxl
+pyxlsb
+PyYAML
+streamlit-authenticator
+opencv-python-headless
+pyzbar
+numpy
