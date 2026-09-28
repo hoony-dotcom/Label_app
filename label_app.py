@@ -84,7 +84,7 @@ if not mgm_query or mgm_query not in all_mgm:
 st.markdown(
     """
     <div style="text-align: center; margin-bottom: 10px;">
-        <a href="intent://#Intent;package=com.example.qr_web_opener;end;" style="
+        <a href="intent://open#Intent;scheme=qr_web_opener;package=com.example.qr_web_opener;end;" style="
             display: inline-block;
             background-color: #ff4b4b;
             color: white;
