@@ -62,7 +62,7 @@ except Exception as e:
     st.stop()
 
 # ==========================================
-# 🔗 URL 쿼리 파라미터 및 기본값 처리
+# 🔗 URL 쿼리 파라미터 및 검색창 처리
 # ==========================================
 query_params = st.query_params
 mgm_query = query_params.get("mgm", "")
@@ -70,23 +70,30 @@ if isinstance(mgm_query, list):
     mgm_query = mgm_query[0]
 mgm_query = mgm_query.strip().upper()
 
-st.markdown("### 🏷️ 의료장비 예방점검 라벨 조회")
-st.markdown("---")
+# 전체 관리번호 목록 추출
+dept_col = '사용\n부서' if '사용\n부서' in df_status.columns else '사용부서'
+all_mgm = df_status['관리번호'].dropna().astype(str).str.strip().str.upper().unique().tolist()
+all_mgm.sort()
 
-# 📱 [특정 앱 실행 버튼] 패키지명(com.example_qr_web_opener) 연동 인텐트 적용
+# 기본 관리번호 설정
+if not mgm_query or mgm_query not in all_mgm:
+    if all_mgm:
+        mgm_query = all_mgm[0]
+
+# 📱 [특정 앱 실행 버튼] 패키지명(com.example_qr_web_opener) 연동 인텐트 적용 (상단 배치)
 st.markdown(
     """
-    <div style="text-align: center; margin-bottom: 15px;">
+    <div style="text-align: center; margin-bottom: 10px;">
         <a href="intent://#Intent;package=com.example_qr_web_opener;end;" style="
             display: inline-block;
             background-color: #ff4b4b;
             color: white;
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem;
             border-radius: 0.5rem;
             font-weight: bold;
             text-decoration: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-size: 1rem;
+            font-size: 0.95rem;
             width: 100%;
             text-align: center;
         ">📷 휴대폰 스캔 앱(QR/바코드) 열기</a>
@@ -95,32 +102,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("<br>", unsafe_allow_html=True)
+# 🔍 셀렉트박스 대신 텍스트 검색 입력창으로 변경
+search_input = st.text_input("🔍 장비 검색 (관리번호 또는 장비명 입력):", value=mgm_query)
 
-# 전체 관리번호 목록 추출 (셀렉트박스용)
-dept_col = '사용\n부서' if '사용\n부서' in df_status.columns else '사용부서'
-all_mgm = df_status['관리번호'].dropna().astype(str).str.strip().str.upper().unique().tolist()
-all_mgm.sort()
-
-# URL에 관리번호가 없거나 잘못된 경우, 기본값으로 첫 번째 관리번호 지정
-if not mgm_query or mgm_query not in all_mgm:
-    if all_mgm:
-        mgm_query = all_mgm[0]
-
-# 상단에서 다른 장비로 즉시 전환할 수 있는 선택 바 제공
-selected_mgm = st.selectbox(
-    "🔍 다른 장비 라벨 조회 (관리번호 선택 또는 검색):",
-    all_mgm,
-    index=all_mgm.index(mgm_query) if mgm_query in all_mgm else 0
-)
-
-if selected_mgm and selected_mgm != mgm_query:
-    mgm_query = selected_mgm
+if search_input:
+    search_keyword = search_input.strip().upper()
+    # 관리번호가 정확히 일치하거나, 장비명에 검색어가 포함된 항목 필터링
+    matched_status = df_status[
+        (df_status['관리번호'].astype(str).str.strip().str.upper() == search_keyword) |
+        (df_status['장비명/구성품명'].astype(str).str.upper().str.contains(search_keyword, na=False))
+    ]
+    if not matched_status.empty:
+        mgm_query = str(matched_status.iloc[0]['관리번호']).strip().upper()
+    else:
+        mgm_query = search_keyword # 검색 결과가 없을 경우 입력값 그대로 유지하여 아래에서 에러 처리
 
 st.markdown("---")
 
 if not mgm_query or all_mgm.count(mgm_query) == 0:
-    st.error("조회 가능한 장비 데이터가 없습니다.")
+    st.error(f"입력하신 검색어(**{mgm_query}**)에 해당하는 장비를 찾을 수 없습니다. 올바른 관리번호나 장비명을 입력해 주세요.")
 else:
     matched_status = df_status[df_status['관리번호'].astype(str).str.strip().str.upper() == mgm_query]
     
@@ -202,22 +202,22 @@ else:
                     pass
             next_inspection_display = f'<span style="color: {date_color}; font-weight: bold;">{next_inspection_date}</span> {alert_html}'
 
-        # 예방점검 라벨 카드 UI 출력
+        # 예방점검 라벨 카드 UI 출력 (위치 최적화)
         st.markdown(
             f"""
-            <div style="border: 3px solid #333; padding: 20px; border-radius: 10px; background-color: #ffffff; font-family: sans-serif; color: #111; max-width: 500px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.15em; margin-bottom: 8px;">
+            <div style="border: 3px solid #333; padding: 18px; border-radius: 10px; background-color: #ffffff; font-family: sans-serif; color: #111; max-width: 500px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1em; margin-bottom: 6px;">
                     <span>🏢 {dept_name}</span>
                     <span>🆔 {mgm_query}</span>
                 </div>
-                <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: #222;">
+                <div style="font-size: 1.05em; font-weight: bold; margin-bottom: 12px; color: #222;">
                     📦 {equipment_name}
                 </div>
-                <hr style="border: 0.5px solid #ccc; margin: 10px 0;">
-                <div style="font-size: 1.05em; margin: 8px 0;"><b>점 검 일 자 :</b> {last_inspection_date}</div>
-                <div style="font-size: 1.05em; margin: 8px 0;"><b>차 기 점 검 :</b> {next_inspection_display}</div>
-                <div style="font-size: 0.95em; margin-top: 12px; color: #555;"><b>점검주기/등급 :</b> 년 {inspection_count_val}회 / {risk_grade}</div>
-                <div style="text-align: center; font-weight: bold; font-size: 1.1em; margin-top: 20px; color: #222; border-top: 1px dashed #ddd; padding-top: 10px;">
+                <hr style="border: 0.5px solid #ccc; margin: 8px 0;">
+                <div style="font-size: 1em; margin: 6px 0;"><b>점 검 일 자 :</b> {last_inspection_date}</div>
+                <div style="font-size: 1em; margin: 6px 0;"><b>차 기 점 검 :</b> {next_inspection_display}</div>
+                <div style="font-size: 0.9em; margin-top: 10px; color: #555;"><b>점검주기/등급 :</b> 년 {inspection_count_val}회 / {risk_grade}</div>
+                <div style="text-align: center; font-weight: bold; font-size: 1em; margin-top: 15px; color: #222; border-top: 1px dashed #ddd; padding-top: 8px;">
                     인하대병원 의용공학팀 &nbsp;|&nbsp; 정비자: {repairer_name}
                 </div>
             </div>
@@ -237,13 +237,13 @@ else:
                     display: inline-block;
                     background-color: #f0f2f6;
                     color: #262730;
-                    padding: 0.75rem 1.25rem;
+                    padding: 0.6rem 1rem;
                     border-radius: 0.5rem;
                     font-weight: bold;
                     text-decoration: none;
                     border: 1px solid #d6d9dc;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    font-size: 1rem;
+                    font-size: 0.95rem;
                 ">🔗 장비 상세내역 및 수리이력 확인(회원가입 필요)</a>
             </div>
             """,
