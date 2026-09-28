@@ -80,11 +80,11 @@ if not mgm_query or mgm_query not in all_mgm:
     if all_mgm:
         mgm_query = all_mgm[0]
 
-# 📱 [특정 앱 실행 버튼] 패키지명(com.example.qr_web_opener) 연동 인텐트 적용 (상단 배치)
+# 📱 [특정 앱 실행 버튼] 패키지명(com.example_qr_web_opener) 연동 인텐트 적용 (상단 배치)
 st.markdown(
     """
     <div style="text-align: center; margin-bottom: 10px;">
-        <a href="intent://open#Intent;scheme=qr_web_opener;package=com.example.qr_web_opener;end;" style="
+        <a href="intent://#Intent;package=com.example_qr_web_opener;end;" style="
             display: inline-block;
             background-color: #ff4b4b;
             color: white;
@@ -102,12 +102,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 🔍 셀렉트박스 대신 텍스트 검색 입력창으로 변경
-search_input = st.text_input("🔍 장비 검색 (관리번호 또는 장비명 입력):", value=mgm_query)
+# 🔍 검색창과 [조회] 버튼을 나란히 배치하기 위한 컬럼 분할
+col1, col2 = st.columns([4, 1])
 
+with col1:
+    search_input = st.text_input("🔍 장비 검색 (관리번호 또는 장비명 입력):", value=mgm_query, label_visibility="collapsed")
+
+with col2:
+    st.markdown("<div style='margin-top: 2px;'></div>", unsafe_allow_html=True) # 줄맞춤용 여백
+    search_btn = st.button("조회", use_container_width=True)
+
+# 버튼이 눌렸거나 검색창 입력값이 변경된 경우 처리
 if search_input:
     search_keyword = search_input.strip().upper()
-    # 관리번호가 정확히 일치하거나, 장비명에 검색어가 포함된 항목 필터링
     matched_status = df_status[
         (df_status['관리번호'].astype(str).str.strip().str.upper() == search_keyword) |
         (df_status['장비명/구성품명'].astype(str).str.upper().str.contains(search_keyword, na=False))
@@ -115,7 +122,7 @@ if search_input:
     if not matched_status.empty:
         mgm_query = str(matched_status.iloc[0]['관리번호']).strip().upper()
     else:
-        mgm_query = search_keyword # 검색 결과가 없을 경우 입력값 그대로 유지하여 아래에서 에러 처리
+        mgm_query = search_keyword
 
 st.markdown("---")
 
@@ -202,7 +209,7 @@ else:
                     pass
             next_inspection_display = f'<span style="color: {date_color}; font-weight: bold;">{next_inspection_date}</span> {alert_html}'
 
-        # 예방점검 라벨 카드 UI 출력 (위치 최적화)
+        # 예방점검 라벨 카드 UI 출력
         st.markdown(
             f"""
             <div style="border: 3px solid #333; padding: 18px; border-radius: 10px; background-color: #ffffff; font-family: sans-serif; color: #111; max-width: 500px; margin: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
