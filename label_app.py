@@ -73,12 +73,26 @@ mgm_query = mgm_query.strip().upper()
 st.markdown("### 🏷️ 의료장비 예방점검 라벨 조회")
 st.markdown("---")
 
-# 📷 [추가됨] 카메라 스캔 앱으로 이동하는 버튼 (상단 배치)
-# 'https://your-scanner-app.streamlit.app' 주소를 본인의 실제 카메라 스캔 앱 주소로 변경하세요.
-st.link_button(
-    label="📷 QR 카메라 스캔 앱으로 이동", 
-    url="https://your-scanner-app.streamlit.app", 
-    use_container_width=True
+# 📱 [특정 앱 실행 버튼] 패키지명(com.example_qr_web_opener) 연동 인텐트 적용
+st.markdown(
+    """
+    <div style="text-align: center; margin-bottom: 15px;">
+        <a href="intent://#Intent;package=com.example_qr_web_opener;end;" style="
+            display: inline-block;
+            background-color: #ff4b4b;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 1rem;
+            width: 100%;
+            text-align: center;
+        ">📷 휴대폰 스캔 앱(QR/바코드) 열기</a>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
 st.markdown("<br>", unsafe_allow_html=True)
