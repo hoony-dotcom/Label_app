@@ -80,11 +80,11 @@ if not mgm_query or mgm_query not in all_mgm:
     if all_mgm:
         mgm_query = all_mgm[0]
 
-# 📱 [특정 앱 실행 버튼] 패키지명(com.example_qr_web_opener) 연동 인텐트 적용 (상단 배치)
+# 📱 [특정 앱 실행 버튼] 패키지명(com.example.qr_web_opener) 연동 인텐트 적용 (상단 배치)
 st.markdown(
     """
     <div style="text-align: center; margin-bottom: 10px;">
-        <a href="intent://#Intent;package=com.example_qr_web_opener;end;" style="
+        <a href="intent://#Intent;package=com.example.qr_web_opener;end;" style="
             display: inline-block;
             background-color: #ff4b4b;
             color: white;
