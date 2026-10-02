@@ -1,0 +1,17 @@
+name: Keep Streamlit Alive
+
+on:
+  # 스케줄 설정 (UTC 기준 매일 오전 6시에 실행, 필요에 따라 변경 가능)
+  schedule:
+    - cron: '0 6 * * *'
+  
+  # GitHub 웹페이지에서 수동으로 즉시 실행할 수 있도록 허용
+  workflow_dispatch:
+
+jobs:
+  ping-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP request to keep app awake
+        run: |
+          curl -s -o /dev/null -w "%{http_code}\n" https://labelapp-akn2dgydwrwaxlnpjoesha.streamlit.app/
